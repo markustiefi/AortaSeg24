@@ -112,6 +112,6 @@ if __name__ == '__main__':
     import os
     from nnunetv2.paths import nnUNet_results, nnUNet_raw
     
-    input_folder = './test/input'
-    output_folder = './test/output'
+    input_folder = './input/images/ct-angiography'
+    output_folder = './output/images/aortic-branches'
     predict_entry_point(input_folder = input_folder, output_folder = output_folder, folds = [1])

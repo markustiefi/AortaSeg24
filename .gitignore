@@ -1,2 +1,5 @@
-resources/
+resources/nnUNet_preprocessed
+resources/nnUNet_raw
+resources/nnUNet_results
 test/
+*.gz

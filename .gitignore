@@ -1,5 +1,9 @@
 resources/nnUNet_preprocessed
 resources/nnUNet_raw
 resources/nnUNet_results
+resources/nnUNET/build
+resources/nnUNET/documentation
+resources/nnUNET/nnunetv2.egg-info
+resources/nnUNET/LICENSE
 test/
 *.gz

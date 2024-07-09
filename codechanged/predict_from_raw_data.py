@@ -161,10 +161,10 @@ class nnUNetPredictor(object):
         print(f'There are {len(list_of_lists_or_source_folder)} cases in the source folder')
         
         list_of_lists_or_source_folder = list_of_lists_or_source_folder[part_id::num_parts]
-        if list_of_lists_or_source_folder[0][0][1:].split('.')[0].endswith('CTA'):
-            k = 4
-        else:
-            k = 5
+        
+        # For Challenge: 
+        k = 0
+        #k = 5
 
         caseids = [os.path.basename(i[0])[:-(len(self.dataset_json['file_ending']) + k)] for i in
                    list_of_lists_or_source_folder]

@@ -26,10 +26,10 @@ from nnunetv2.paths import nnUNet_raw
 def get_identifiers_from_splitted_dataset_folder(folder: str, file_ending: str):
     files = subfiles(folder, suffix=file_ending, join=False)
     # all files have a 4 digit channel index (_XXXX)
-    if files[0].split('.')[0].endswith('CTA'):
-        crop = len(file_ending) + 4
-    else:
-        crop = len(file_ending) + 5
+    
+    # For Challenge:
+    crop = len(file_ending)
+    #crop = len(file_ending) + 5
     files = [i[:-crop] for i in files]
     # only unique image ids
     files = np.unique(files)
@@ -43,11 +43,19 @@ def create_lists_from_splitted_dataset_folder(folder: str, file_ending: str, ide
     """
     files = os.listdir(folder)
     list_of_lists = []
+<<<<<<< HEAD
     for f in files:
         p = re.compile(re.escape(f))
         list_of_lists.append([join(folder, i) for i in files if p.fullmatch(i)])
     #print(list_of_lists)
 
+=======
+    for f in identifiers:
+            # For Challenge
+            p = re.compile(re.escape(f) + re.escape(file_ending))
+            #p = re.compile(re.escape(f) + r"_\d\d\d\d" + re.escape(file_ending))
+            list_of_lists.append([join(folder, i) for i in files if p.fullmatch(i)])
+>>>>>>> 3cd87cb739b9fe172b82e3fb6dad99634d9390b5
     return list_of_lists
 
 

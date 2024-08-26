@@ -161,6 +161,13 @@ class nnUNetPredictor(object):
         print(f'There are {len(list_of_lists_or_source_folder)} cases in the source folder')
         
         list_of_lists_or_source_folder = list_of_lists_or_source_folder[part_id::num_parts]
+<<<<<<< HEAD
+=======
+        
+        # For Challenge: 
+        k = 0
+        #k = 5
+>>>>>>> 3cd87cb739b9fe172b82e3fb6dad99634d9390b5
 
 
         caseids = [os.path.basename(i[0]) for i in list_of_lists_or_source_folder]

@@ -41,17 +41,13 @@ def create_lists_from_splitted_dataset_folder(folder: str, file_ending: str, ide
     """
     does not rely on dataset.json
     """
-    if identifiers is None:
-        identifiers = get_identifiers_from_splitted_dataset_folder(folder, file_ending)
-    files = subfiles(folder, suffix=file_ending, join=False, sort=True)
+    files = os.listdir(folder)
     list_of_lists = []
-    for f in identifiers:
-        if files[0].split('.')[0].endswith('CTA'):
-            p = re.compile(re.escape(f) + r"_CTA" + re.escape(file_ending))
-            list_of_lists.append([join(folder, i) for i in files if p.fullmatch(i)])
-        else:
-            p = re.compile(re.escape(f) + r"_\d\d\d\d" + re.escape(file_ending))
-            list_of_lists.append([join(folder, i) for i in files if p.fullmatch(i)])
+    for f in files:
+        p = re.compile(re.escape(f))
+        list_of_lists.append([join(folder, i) for i in files if p.fullmatch(i)])
+    #print(list_of_lists)
+
     return list_of_lists
 
 

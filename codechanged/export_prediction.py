@@ -36,7 +36,7 @@ def convert_predicted_logits_to_segmentation_with_correct_shape(predicted_logits
     # apply_inference_nonlin will covnert to torch
     predicted_probabilities = np.zeros_like(predicted_logits)
     z_s = predicted_probabilities.shape[1]
-    chunk_size = 100
+    chunk_size = 200
     n = (z_s + chunk_size - 1) // chunk_size
 
     for t in range(0,n):
@@ -114,10 +114,10 @@ def export_prediction_from_logits(predicted_array_or_file: Union[np.ndarray, tor
         segmentation_final = ret
         del ret
 
-    rw = plans_manager.image_reader_writer_class()
-    rw.write_seg(segmentation_final, output_file_truncated + '_label' + dataset_json_dict_or_file['file_ending'],
-                 properties_dict)
-
+    #rw = plans_manager.image_reader_writer_class()
+    #rw.write_seg(segmentation_final, output_file_truncated,
+    #             properties_dict)
+    return segmentation_final
 
 def resample_and_save(predicted: Union[torch.Tensor, np.ndarray], target_shape: List[int], output_file: str,
                       plans_manager: PlansManager, configuration_manager: ConfigurationManager, properties_dict: dict,

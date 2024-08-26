@@ -5,5 +5,7 @@ resources/nnUNET/build
 resources/nnUNET/documentation
 resources/nnUNET/nnunetv2.egg-info
 resources/nnUNET/LICENSE
+resources/nnUNET
 test/
 *.gz
+*.pyc

@@ -33,20 +33,18 @@ from resources.nnUNET.nnunetv2.utilities.json_export import recursive_fix_for_js
 from resources.nnUNET.nnunetv2.utilities.label_handling.label_handling import determine_num_input_channels
 from resources.nnUNET.nnunetv2.utilities.plans_handling.plans_handler import PlansManager, ConfigurationManager
 from resources.nnUNET.nnunetv2.utilities.utils import create_lists_from_splitted_dataset_folder
+from resources.nnUNET.nnunetv2.postprocessing.remove_connected_components import remove_all_but_largest_component_from_segmentation
 
 import SimpleITK
 from glob import glob
 import numpy as np
 
-def predict_entry_point(input_folder:str, output_folder:str, folds: list,
-                        best = bool):
-    npp = 1
-    nps = 1
-    save_probabilities = False
-    prev_stage_predictions = None
-    num_parts = 1
-    part_id = 0
-    continue_prediction = False
+INPUT_PATH = Path(r"/input")
+OUTPUT_PATH = Path(r"/output")
+
+def predict_entry_point():
+    folds = [0,1,2,3,4]
+    best = True
     
     if best:
         checkpoint_net = 'checkpoint_best.pth'
@@ -58,7 +56,7 @@ def predict_entry_point(input_folder:str, output_folder:str, folds: list,
     plans = 'nnUNetPlans'
     configuration = '3d_fullres'
 
-    tile_step_size = 0.3
+    tile_step_size = 0.4
     disable_tta = True
     verbose = False
     disable_progress_bar = True
@@ -69,29 +67,21 @@ def predict_entry_point(input_folder:str, output_folder:str, folds: list,
         "Isensee, F., Jaeger, P. F., Kohl, S. A., Petersen, J., & Maier-Hein, K. H. (2021). "
         "nnU-Net: a self-configuring method for deep learning-based biomedical image segmentation. "
         "Nature methods, 18(2), 203-211.\n#######################################################################\n")
-
-    if not isdir(output_folder):
-        maybe_mkdir_p(output_folder)
+    
+    image, spacing, direction, origin, spacings_for_nnunet = load_image_file_as_array(
+            location=INPUT_PATH / "images/ct-angiography",
+        )
+    
+    image_properties = {'sitk_stuff': {
+        'spacing': spacing, 
+        'direction': direction, 
+        'origin': origin},
+        'spacing': spacings_for_nnunet}
 
     model_folder = get_output_folder(id_, tr, plans, configuration)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = torch.device('cuda')
 
-    print(f'Device: {device}')
-
-
-    if device == 'cpu':
-        # let's allow torch to use hella threads
-        import multiprocessing
-        torch.set_num_threads(multiprocessing.cpu_count())
-        device = torch.device('cpu')
-    elif device == 'cuda':
-        # multithreading in torch doesn't help nnU-Net if run on GPU
-        torch.set_num_threads(1)
-        torch.set_num_interop_threads(1)
-        device = torch.device('cuda')
-    else:
-        device = torch.device('mps')
     
     predictor = nnUNetPredictor(tile_step_size=tile_step_size,
                                 use_gaussian=True,
@@ -108,14 +98,19 @@ def predict_entry_point(input_folder:str, output_folder:str, folds: list,
         checkpoint_name= checkpoint_net
     )
 
-    predictor.predict_from_files(input_folder, output_folder, save_probabilities=save_probabilities,
-                                 overwrite=not continue_prediction,
-                                 num_processes_preprocessing=npp,
-                                 num_processes_segmentation_export=nps,
-                                 folder_with_segs_from_prev_stage=prev_stage_predictions,
-                                 num_parts=num_parts,
-                                 part_id= part_id)
 
+    aortic_branches = predictor.predict_single_volume(image, properties=image_properties)
+    #aortic_branches = remove_all_but_largest_component_from_segmentation(aortic_branches, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23], 0)
+
+    write_array_as_image_file(
+            location=OUTPUT_PATH / "images/aortic-branches",
+            array=aortic_branches,
+            spacing=spacing, 
+            direction=direction, 
+            origin=origin,
+        )
+    print('Saved!!!')
+    return 0
 
 
 def load_image_file_as_array(*, location):
@@ -127,11 +122,12 @@ def load_image_file_as_array(*, location):
     origin = result.GetOrigin()
     # Convert it to a Numpy array
     npy_image = SimpleITK.GetArrayFromImage(result)
-    npy_image = npy_image[50:-50,100:-100,100:-100]
-    npy_image = npy_image[None]
-    spacings_for_nnunet = (list(spacing[-1])[::-1])
 
-    return npy_image, spacing, direction, origin, spacings_for_nnunet
+    npy_image = npy_image[25:-25,100:-100,100:-100]
+    npy_image = npy_image[None]
+    spacings_for_nnunet = spacing[::-1]
+
+    return npy_image.astype(np.float32), spacing, direction, origin, spacings_for_nnunet
 
 def write_array_as_image_file(*, location, array, spacing, origin, direction):
     location.mkdir(parents=True, exist_ok=True)
@@ -139,7 +135,7 @@ def write_array_as_image_file(*, location, array, spacing, origin, direction):
     # You may need to change the suffix to .tiff to match the expected output
     suffix = ".mha"
     
-    pad_width = ((50, 50), (100, 100), (100, 100))
+    pad_width = ((25, 25), (100, 100), (100, 100))
     array = np.pad(array, pad_width, mode='constant', constant_values=0)
 
     image = SimpleITK.GetImageFromArray(array)
@@ -154,15 +150,4 @@ def write_array_as_image_file(*, location, array, spacing, origin, direction):
 
 
 if __name__ == '__main__':
-    import sys
-    import os
-    from resources.nnUNET.nnunetv2.paths import nnUNet_results, nnUNet_raw
-
-    from pathlib import Path
-    INPUT_PATH = Path("/input")
-    OUTPUT_PATH = Path("/output")
-
-    
-    input_folder = './test/input/images/ct-angiography'
-    output_folder = './test/output/images/aortic-branches'
-    predict_entry_point(input_folder = input_folder, output_folder = output_folder, folds = [0,1], best = True)
+    predict_entry_point()

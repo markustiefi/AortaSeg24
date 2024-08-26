@@ -1,0 +1,38 @@
+{
+    "description": "",
+    "labels": {
+        "background": 0,
+        "zone0": 1,
+        "innominate": 2,
+        "zone1": 3,
+        "LCC": 4,
+        "Z2": 5,
+        "LSA": 6,
+        "Z3": 7,
+        "Z4": 8,
+        "Z5": 9,
+        "Z6": 10,
+        "CA": 11,
+        "Z7": 12,
+        "SMA": 13,
+        "Z8": 14,
+        "RRA": 15,
+        "LRA": 16,
+        "Z9": 17,
+        "Z10R": 18,
+        "Z10L": 19,
+        "RIIA": 20,
+        "LIIA": 21,
+        "Z11R": 22,
+        "Z11L": 23
+    },
+    "licence": "hands off!",
+    "name": "AortaSeg24",
+    "numTraining": 50,
+    "reference": "",
+    "release": 0.0,
+    "channel_names": {
+        "0": "C"
+    },
+    "file_ending": ".mha"
+}

@@ -161,13 +161,9 @@ class nnUNetPredictor(object):
         print(f'There are {len(list_of_lists_or_source_folder)} cases in the source folder')
         
         list_of_lists_or_source_folder = list_of_lists_or_source_folder[part_id::num_parts]
-        if list_of_lists_or_source_folder[0][0][1:].split('.')[0].endswith('CTA'):
-            k = 4
-        else:
-            k = 5
 
-        caseids = [os.path.basename(i[0])[:-(len(self.dataset_json['file_ending']) + k)] for i in
-                   list_of_lists_or_source_folder]
+
+        caseids = [os.path.basename(i[0]) for i in list_of_lists_or_source_folder]
         print(
             f'I am process {part_id} out of {num_parts} (max process ID is {num_parts - 1}, we start counting with 0!)')
         print(f'There are {len(caseids)} cases that I would like to predict')
@@ -240,20 +236,92 @@ class nnUNetPredictor(object):
                 f' they are located via folder_with_segs_from_prev_stage'
 
         # sort out input and output filenames
-        list_of_lists_or_source_folder, output_filename_truncated, seg_from_prev_stage_files = \
+        #print('---------------------------------------------')
+        #print(output_folder_or_list_of_truncated_output_files)
+        #print('---------------------------------------------')
+        list_of_lists_or_source_folder, output_filenames_truncated, seg_from_prev_stage_files = \
             self._manage_input_and_output_lists(list_of_lists_or_source_folder,
                                                 output_folder_or_list_of_truncated_output_files,
                                                 folder_with_segs_from_prev_stage, overwrite, part_id, num_parts,
                                                 save_probabilities)
+        #print('---------------------------------------------')
+        #print(output_filenames_truncated)
+        #print('---------------------------------------------')
         if len(list_of_lists_or_source_folder) == 0:
             return
 
-        data_iterator = self._internal_get_data_iterator_from_lists_of_filenames(list_of_lists_or_source_folder,
-                                                                                 seg_from_prev_stage_files,
-                                                                                 output_filename_truncated,
-                                                                                 num_processes_preprocessing)
+        label_manager = self.plans_manager.get_label_manager(self.dataset_json)
+        preprocessor = self.configuration_manager.preprocessor_class(verbose=self.verbose_preprocessing)
+        for idx in range(len(list_of_lists_or_source_folder)):
+            data, seg, data_properties = preprocessor.run_case(list_of_lists_or_source_folder[idx],
+                                                               None,
+                                                               self.plans_manager,
+                                                               self.configuration_manager,
+                                                               self.dataset_json)
+            data = torch.from_numpy(data).contiguous().float()
+            
+            ofile = output_filenames_truncated[idx] if output_filenames_truncated is not None else None
+            properties = data_properties
 
-        return self.predict_from_data_iterator(data_iterator, save_probabilities, num_processes_segmentation_export)
+            prediction = self.predict_logits_from_preprocessed_data(data).cpu()
+            del data
+
+
+            print('sending off prediction to background worker for resampling and export')
+            export_prediction_from_logits(prediction, properties,
+                                            self.configuration_manager, self.plans_manager,
+                                            self.dataset_json, ofile, save_probabilities)
+            
+            print(f'done with {os.path.basename(ofile)}')
+        compute_gaussian.cache_clear()
+        empty_cache(self.device)
+
+    def predict_single_volume(self, data: np.ndarray, properties: dict):
+        """
+        This is nnU-Net's default function for making predictions. It works best for batch predictions
+        (predicting many images at once).
+        """
+
+        # check if we need a prediction from the previous stage
+        if self.configuration_manager.previous_stage_name is not None:
+            assert folder_with_segs_from_prev_stage is not None, \
+                f'The requested configuration is a cascaded network. It requires the segmentations of the previous ' \
+                f'stage ({self.configuration_manager.previous_stage_name}) as input. Please provide the folder where' \
+                f' they are located via folder_with_segs_from_prev_stage'
+            
+
+        label_manager = self.plans_manager.get_label_manager(self.dataset_json)
+        preprocessor = self.configuration_manager.preprocessor_class(verbose=self.verbose_preprocessing)
+
+        data, seg  = preprocessor.run_case_npy(data,
+                                                    seg = None, properties = properties, 
+                                                   plans_manager=self.plans_manager,
+                                                   configuration_manager=self.configuration_manager,
+                                                   dataset_json=self.dataset_json)
+            
+        data = torch.from_numpy(data).contiguous().float()
+        data = torch.flip(data, (3,2))
+        properties = properties
+
+        prediction = self.predict_logits_from_preprocessed_data(data).cpu()
+        del data
+
+        print('sending off prediction to background worker for resampling and export')
+        segmentation_final = export_prediction_from_logits(prediction, properties,
+                                        self.configuration_manager, self.plans_manager,
+                                        self.dataset_json, '', False)
+        segmentation_final = torch.flip(torch.from_numpy(segmentation_final).unsqueeze(0), (3,2)).squeeze().numpy()
+
+        
+        return segmentation_final
+
+
+        #data_iterator = self._internal_get_data_iterator_from_lists_of_filenames([list_of_lists_or_source_folder[i]],
+        #                                                                            seg_from_prev_stage_files,
+        #                                                                            output_filename_truncated,
+        #                                                                            num_processes_preprocessing)
+        #
+        #return self.predict_from_data_iterator(data_iterator, save_probabilities, num_processes_segmentation_export)
 
     def _internal_get_data_iterator_from_lists_of_filenames(self,
                                                             input_list_of_lists: List[List[str]],
@@ -345,7 +413,6 @@ class nnUNetPredictor(object):
         """
         with multiprocessing.get_context("spawn").Pool(num_processes_segmentation_export) as export_pool:
             worker_list = [i for i in export_pool._pool]
-            print(worker_list)
             r = []
             for preprocessed in data_iterator:
                 data = preprocessed['data']
@@ -440,20 +507,11 @@ class nnUNetPredictor(object):
         if self.verbose:
             print('resampling to original shape')
         if output_file_truncated is not None:
-            export_prediction_from_logits(predicted_logits, dct['data_properites'], self.configuration_manager,
+            image = export_prediction_from_logits(predicted_logits, dct['data_properites'], self.configuration_manager,
                                           self.plans_manager, self.dataset_json, output_file_truncated,
                                           save_or_return_probabilities)
-        else:
-            ret = convert_predicted_logits_to_segmentation_with_correct_shape(predicted_logits, self.plans_manager,
-                                                                              self.configuration_manager,
-                                                                              self.label_manager,
-                                                                              dct['data_properites'],
-                                                                              return_probabilities=
-                                                                              save_or_return_probabilities)
-            if save_or_return_probabilities:
-                return ret[0], ret[1]
-            else:
-                return ret
+            return image
+        
 
     def predict_logits_from_preprocessed_data(self, data: torch.Tensor) -> torch.Tensor:
         """
@@ -524,8 +582,10 @@ class nnUNetPredictor(object):
                                  'must be one shorter than len(image_size) ' \
                                  '(only dimension ' \
                                  'discrepancy of 1 allowed).'
+
             steps = compute_steps_for_sliding_window(image_size[1:], self.configuration_manager.patch_size,
                                                      self.tile_step_size)
+
             if self.verbose: print(f'n_steps {image_size[0] * len(steps[0]) * len(steps[1])}, image size is'
                                    f' {image_size}, tile_size {self.configuration_manager.patch_size}, '
                                    f'tile_step_size {self.tile_step_size}\nsteps:\n{steps}')
@@ -599,6 +659,7 @@ class nnUNetPredictor(object):
                 if self.verbose: print("mirror_axes:", self.allowed_mirroring_axes if self.use_mirroring else None)
 
                 # if input_image is smaller than tile_size we need to pad it to tile_size.
+
                 data, slicer_revert_padding = pad_nd_image(input_image, self.configuration_manager.patch_size,
                                                            'constant', {'value': 0}, True,
                                                            None)

@@ -39,11 +39,12 @@ import SimpleITK
 from glob import glob
 import numpy as np
 
-INPUT_PATH = Path(r"/input")
-OUTPUT_PATH = Path(r"/output")
+INPUT_PATH = Path(r"test/input")
+OUTPUT_PATH = Path(r"test/output")
 
 def predict_entry_point():
-    folds = [0,1,2,3,4]
+    #We use 5 folds and the networks which achieved the best validation score during training.
+    folds = [0,1,2,3,4,5]
     best = True
     
     if best:
@@ -150,4 +151,8 @@ def write_array_as_image_file(*, location, array, spacing, origin, direction):
 
 
 if __name__ == '__main__':
+    import time 
+    t1 = time.time()
     predict_entry_point()
+    t2 = time.time()
+    print(t2-t1)

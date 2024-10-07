@@ -19,7 +19,7 @@ Ensure the weights are stored in the following structure:
 
 nnUNet_results/Dataset504_aorta/ nnUNetTrainerNoMirroring.../fold_X
 
-Place the entire `nnUNet_results` folder into the `resources` subfolder of the provided directory.
+Place the entire `nnUNet_results` folder into the `resources` subfolder of the provided repository.
 
 ---
 

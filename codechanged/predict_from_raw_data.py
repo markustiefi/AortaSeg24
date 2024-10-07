@@ -284,10 +284,6 @@ class nnUNetPredictor(object):
         empty_cache(self.device)
 
     def predict_single_volume(self, data: np.ndarray, properties: dict):
-        """
-        This is nnU-Net's default function for making predictions. It works best for batch predictions
-        (predicting many images at once).
-        """
 
         # check if we need a prediction from the previous stage
         if self.configuration_manager.previous_stage_name is not None:
@@ -307,6 +303,8 @@ class nnUNetPredictor(object):
                                                    dataset_json=self.dataset_json)
             
         data = torch.from_numpy(data).contiguous().float()
+        
+        #Due to different orientation between training and test data we need to flip.
         data = torch.flip(data, (3,2))
         properties = properties
 

@@ -8,7 +8,7 @@ At the time the challenge started, we were unaware of the publicly available imp
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/markustiefi/Aorta24
+git clone https://github.com/markustiefi/MedUIBK-AortaSeg24
 ```
 
 ### 2. Download and Unzip

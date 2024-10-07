@@ -40,7 +40,7 @@ Now, install the modified version of nnUNet provided in the resources folder:
 pip install -e path_to/resources/nnUNET/
 ```
 ### 5. Set Environment Variables
-SEt the rquired paths for nnUNet:
+Set the required paths for nnUNet (Linux):
 
 ```bash
 export nnUNet_raw="/path_to/resources/nnUNet_raw"

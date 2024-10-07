@@ -1,6 +1,17 @@
-## Instructions
+## AortaSeg24 challenge
+The provided code was developed for the [AortaSeg24 Challenge](https://aortaseg24.grand-challenge.org/). It builds upon the nnUNet framework by Isensee ([nnUNet GitHub](https://github.com/MIC-DKFZ/nnUNet)) with custom modifications. Specifically, we implemented a custom trainer that avoids using mirroring to accurately differentiate between the left and right arteries. Additionally, we introduced a custom loss function that combines Dice, TopK, and Skeleton Recall losses.
 
-### 1. Download and Unzip
+At the time the challenge started, we were unaware of the publicly available implementation of Skeleton Recall ([Skeleton Recall GitHub](https://github.com/MIC-DKFZ/Skeleton-Recall)), so we independently implemented it based on the corresponding paper ([Skeleton Recall Paper](https://arxiv.org/abs/2404.03010)).
+
+## Usage Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/markustiefi/Aorta24
+```
+
+### 2. Download and Unzip
 Download and unzip the provided folder. Then, download and unzip the model weights from the following link:  
 [Download Weights](https://fileshare.uibk.ac.at/d/1f307883aec746028f24/)
 
@@ -12,7 +23,7 @@ Place the entire `nnUNet_results` folder into the `resources` subfolder of the p
 
 ---
 
-### 2. Set Up the Environment
+### 3. Set Up the Environment
 
 Create a new environment using your preferred environment manager (e.g., Conda or virtualenv), and activate the environment.
 
@@ -22,13 +33,13 @@ Next, install PyTorch and CUDA using the following command:
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-### 3. Install modified nnUNet
+### 4. Install modified nnUNet
 Now, install the modified version of nnUNet provided in the resources folder:
 
 ```bash
 pip install -e path_to/resources/nnUNET/
 ```
-### 4. Set Environment Variables
+### 5. Set Environment Variables
 SEt the rquired paths for nnUNet:
 
 ```bash
@@ -37,13 +48,13 @@ export nnUNet_results="/path_to/resources/nnUNet_results"
 export nnUNet_preprocessed="/path_to/resources/nnUNet_preprocessed"
 ```
 
-### 5. Prepare the Input Data
+### 6. Prepare the Input Data
 Place the volume you want to segment in the following folder:
 ```bash
 test/input/images/ct-angiography
 ```
 
-### 6. Run the Inference
+### 7. Run the Inference
 To run the inference, use the following command:
 ```bash
 python inference_challenge.py

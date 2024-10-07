@@ -1,6 +1,7 @@
 ## AortaSeg24 challenge
-The code provided particpated in the AortaSeg24 challenge (https://aortaseg24.grand-challenge.org/). The code heavily depends on the nnUNet framework by Isensee (https://github.com/MIC-DKFZ/nnUNet). We added a custom Trainer which does not use mirroring to differentiate between left and right arteries as well as a custom loss combining Dice, TopK and Skeleton Recall loss. Due to the fact that at time of the start of the challenge we were not aware of the publicly available code (https://github.com/MIC-DKFZ/Skeleton-Recall) we did the implementation ourselfs according to the paper (https://arxiv.org/abs/2404.03010).
+The provided code was developed for the [AortaSeg24 Challenge](https://aortaseg24.grand-challenge.org/). It builds upon the nnUNet framework by Isensee ([nnUNet GitHub](https://github.com/MIC-DKFZ/nnUNet)) with custom modifications. Specifically, we implemented a custom trainer that avoids using mirroring to accurately differentiate between the left and right arteries. Additionally, we introduced a custom loss function that combines Dice, TopK, and Skeleton Recall losses.
 
+At the time the challenge started, we were unaware of the publicly available implementation of Skeleton Recall ([Skeleton Recall GitHub](https://github.com/MIC-DKFZ/Skeleton-Recall)), so we independently implemented it based on the corresponding paper ([Skeleton Recall Paper](https://arxiv.org/abs/2404.03010)).
 
 ## Instructions
 

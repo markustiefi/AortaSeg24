@@ -3,7 +3,6 @@ resources/nnUNet_raw
 resources/nnUNet_results
 resources/nnUNET/build
 resources/nnUNET/documentation
-resources/nnUNET/nnunetv2.egg-info
 test/
 *.gz
 *.pyc

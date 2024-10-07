@@ -20,7 +20,7 @@ Next, install PyTorch and CUDA using the following command:
 
 ```bash
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
+```
 ### 3. Install modified nnUNet
 Now, install the modified version of nnUNet provided in the resources folder:
 

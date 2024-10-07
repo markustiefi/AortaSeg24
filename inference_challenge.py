@@ -39,12 +39,12 @@ import SimpleITK
 from glob import glob
 import numpy as np
 
-INPUT_PATH = Path(r"test/input")
-OUTPUT_PATH = Path(r"test/output")
+INPUT_PATH = Path(r"/input")
+OUTPUT_PATH = Path(r"/output")
 
 def predict_entry_point():
     #We use 5 folds and the networks which achieved the best validation score during training.
-    folds = [0,1,2,3,4,5]
+    folds = [0,1,2,3,4]
     best = True
     
     if best:
@@ -123,7 +123,7 @@ def load_image_file_as_array(*, location):
     origin = result.GetOrigin()
     # Convert it to a Numpy array
     npy_image = SimpleITK.GetArrayFromImage(result)
-
+    print(spacing)
     npy_image = npy_image[25:-25,100:-100,100:-100]
     npy_image = npy_image[None]
     spacings_for_nnunet = spacing[::-1]
@@ -151,8 +151,8 @@ def write_array_as_image_file(*, location, array, spacing, origin, direction):
 
 
 if __name__ == '__main__':
-    import time 
-    t1 = time.time()
+    #import time 
+    #t1 = time.time()
     predict_entry_point()
-    t2 = time.time()
-    print(t2-t1)
+    #t2 = time.time()
+    #print(t2-t1)

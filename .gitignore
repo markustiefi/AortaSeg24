@@ -1,6 +1,4 @@
-resources/nnUNet_preprocessed
-resources/nnUNet_raw
-resources/nnUNet_results
+resources/nnUNET_results/Dataset504_aorta
 resources/nnUNET/build
 resources/nnUNET/documentation
 resources/nnUNET/readme.md

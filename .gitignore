@@ -3,6 +3,7 @@ resources/nnUNet_raw
 resources/nnUNet_results
 resources/nnUNET/build
 resources/nnUNET/documentation
+resources/nnUNET/readme.md
 test/
 *.gz
 *.pyc
